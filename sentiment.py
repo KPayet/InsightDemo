@@ -9,8 +9,7 @@ import os
 import json
 import numpy as np
 from textblob import TextBlob
-from geopy.geocoders import GoogleV3
-
+import reverse_geocoder as geo
 
 from pyspark import SparkContext
 
@@ -27,16 +26,16 @@ rawTweets = sc.textFile("./tweets.json", 100)
 # first thing to do is extract the information we need from the tweets, i.e. the coordinates and the text
 parsedTweets = (rawTweets.map(lambda tweet: json.loads(tweet))
                          .filter(lambda tweet: tweet["text"] != "" and tweet["coordinates"] is not None)  # filter early
-                         .map(lambda tweet: (tweet["coordinates"]["coordinates"], tweet["text"])))          # project early
+                         .map(lambda tweet: (tweet["coordinates"]["coordinates"], tweet["text"])) # project early
+                         .map(lambda t: ((t[0][1], t[0][0]), t[1])))    # putting coordinates in usual lat - lon format        
 
 # extract state from coordinates using geopy
-geolocator = GoogleV3()
-state_text = (parsedTweets.filter(lambda t: geolocator.reverse(str(t[0][1])+", "+str(t[0][0])) == "us"))
 
-state_text = (parsedTweets.map(lambda t: (t[0].split(","), t[1]) )
-                .filter(lambda t: len(t[0]) > 1) # loses only 0.6% of data
-                .map(lambda t: (t[0][1][1:], t[1]))
-                .filter(lambda t: t[0] != "" and t[0] != "USA"))
+state_text = (parsedTweets.map(lambda t: (geo.search(t[0])[0], t[1]))
+                          .map(lambda t: ( (t[0]["cc"], t[0]["admin1"]), t[1]) )
+                          .filter(lambda t: t[0][0] == "US")
+                          .map(lambda t: (t[0][1], t[1]) ) )
+
 # at this point data is like (u'state', u'tweet text') for each tweet
                 
 # compute sentiment for each tweet and return a list of (state, sentiment) tuples
