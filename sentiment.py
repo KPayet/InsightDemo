@@ -42,14 +42,9 @@ state_text = (parsedTweets.map(lambda t: (geo.search(t[0])[0], t[1]))
 
 state_sent = state_text.map(lambda t: (t[0].upper(), TextBlob(t[1]).sentiment.polarity))
 
-# and I simply save two files
-# First all the state, sentiment entries, for detailed statistical analysis
+# and I simply save one file
+#  all the state, sentiment entries, for detailed statistical analysis in R
 
 saveAsTextFile(state_sent.map(lambda t: ",".join(map(str, (t[0], t[1])))) , # turn into nice output to store as csv
                "./sentiments_states.csv", overwrite = True)
 
-# and now produce an aggregated version with only average sentiment for each state
-
-
-state_avgSent = (state_sent.groupByKey()
-                           .map(lambda t: (t[0], np.mean(list(t[1])))))
