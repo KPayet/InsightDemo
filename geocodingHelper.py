@@ -5,14 +5,9 @@ Created on Sat Nov 21 14:59:27 2015
 @author: PAYET KEVIN
 """
 
-import sys
 import fiona
-import shapely.geometry as sg
-from shapely.ops import transform
-import json
 from matplotlib.path import Path
 import pyproj
-from functools import partial
 
 def GetState(lon, lat, States):
 
