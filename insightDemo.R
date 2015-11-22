@@ -105,7 +105,7 @@ fitMC$dif.com[grepl("New York", rownames(fitMC$dif.com)),]
 
 source("bayesModel.R") 
 
-avgMCMC = avgSentiment(sentiments, nChains = 3, nSteps = 10000)
+avgMCMC = avgSentiment(sentiments[sample(1:nrow(sentiments), 100, replace = F),], nChains = 4, nSteps = 1000)
 
 canvas(width = 13, height = 7.3)
 plotPost(avgMCMC[,"mu"], cenTend = "mode", credMass = 0.95)

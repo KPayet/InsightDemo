@@ -35,11 +35,17 @@ avgSentiment = function(sentiments, nChains = 3, nSteps = 10000){
     "
     writeLines(modelString, con = "tempMCMC.txt")
     
-    jagsModel = jags.model(file = "tempMCMC.txt", data = dataList, n.chains = 3, n.adapt = 1000)
-    update(jagsModel, n.iter = 2000)
-    codaSample = coda.samples(jagsModel, variable.names = c("mu", "sigma"), n.iter = ceiling(nSteps/3))
+#     jagsModel = jags.model(file = "tempMCMC.txt", data = dataList, n.chains = 3, n.adapt = 1000)
+#     update(jagsModel, n.iter = 2000)
+#     codaSample = coda.samples(jagsModel, variable.names = c("mu", "sigma"), n.iter = ceiling(nSteps/3))
     
+    runJagsOut = run.jags(method = "parallel", model = "tempMCMC.txt", monitor = c("mu"),
+                          data = dataList, inits = initList, 
+                          n.chains = nChains, adapt = 1000, burnin = 2000, sample = ceiling(nSteps/nChains), 
+                          summarise = F, plots = F)
     
+    codaSample = as.mcmc.list(runJagsOut)
+      
     mcmcDiagnostics(codaSample)
     
     mcmcMat = as.matrix(codaSample)
