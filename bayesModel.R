@@ -23,15 +23,15 @@ avgSentiment = function(sentiments, nChains = 3, nSteps = 10000){
     }
     
     modelString = "
-    model {
-    for(i in 1:NTotal) {
-    y[i] ~ dt(mu, 1/sigma^2, nu)
-    }
-    mu ~ dnorm(yMean, 1/(10*ySD)^2)
-    sigma ~ dunif(ySD/100, 100*ySD)
-    nuMinusOne ~ dexp(1/29)
-    nu <- nuMinusOne + 1
-    }
+      model {
+        for(i in 1:NTotal) {
+          y[i] ~ dt(mu, 1/sigma^2, nu)
+        }
+        mu ~ dnorm(yMean, 1/(10*ySD)^2)
+        sigma ~ dunif(ySD/100, 100*ySD)
+        nuMinusOne ~ dexp(1/29)
+        nu <- nuMinusOne + 1
+      }
     "
     writeLines(modelString, con = "tempMCMC.txt")
     

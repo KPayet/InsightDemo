@@ -26,7 +26,7 @@ drawMap = function(map_df, method) {
                 showlakes = TRUE,
                 lakecolor = toRGB('white')
         )
-        canvas()
+        #canvas()
         plot_ly(map_df, z = value, text = hover, locations = code, type = 'choropleth',
                 locationmode = 'USA-states', color = value, colors = 'Purples',
                 marker = list(line = l), colorbar = list(title = "Sentiment score")) %>%

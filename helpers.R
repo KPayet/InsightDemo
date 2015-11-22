@@ -37,7 +37,7 @@ hdi = function(sampleVec , mass = 0.95 ) {
 mcmcDiagnostics = function( codaObject , parName=varnames(codaObject)[1] ,
                      saveName=NULL , saveType="jpg" ) {
     DBDAplColors = c("skyblue","black","royalblue","steelblue")
-    canvas(height=5,width=7)
+    #canvas(height=5,width=7)
     par( mar=0.5+c(3,4,1,0) , oma=0.1+c(0,0,2,0) , mgp=c(2.25,0.7,0) , 
          cex.lab=1.5 )
     layout(matrix(1:4,nrow=2))

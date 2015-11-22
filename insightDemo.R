@@ -11,8 +11,8 @@ str(sentiments)
 summary(sentiments)
 
 # seems like something wrong with Washington
-sentiments %>% filter(state=="Washington")
-sentiments %>% filter(is.na(score)) %>% select(state) %>% unique() # only state with NAs. Is it because of the name formatting in the csv file? Yes!
+#sentiments %>% filter(state=="Washington")
+#sentiments %>% filter(is.na(score)) %>% select(state) %>% unique() # only state with NAs. Is it because of the name formatting in the csv file? Yes!
 
 # reload and reprocess
 
@@ -95,7 +95,8 @@ cor(avgSent[,4:10]) # :-(
 #   This is one of the simplest case: metric predicted variable (score) + 1 nominal predictor
 
 # fit = aov(score~state, data=sentiments) too much differences between sample sizes
- fit = kruskal.test(score~state, data = sentiments) # of course it is unequal
+sentiments$state = as.factor(sentiments$state)
+fit = kruskal.test(score~state, data = sentiments) # of course it is unequal
 # tukTest = TuekyHSD(fit)
 require(pgirmess)
 fitMC = kruskalmc(score~state, data = sentiments) # pairwise comparison
@@ -104,7 +105,7 @@ fitMC$dif.com[grepl("New York", rownames(fitMC$dif.com)),]
 
 source("bayesModel.R") 
 
-avgMCMC = avgSentiment(sentiments, nChains = 3, nSteps = 1000)
+avgMCMC = avgSentiment(sentiments, nChains = 3, nSteps = 10000)
 
 canvas(width = 13, height = 7.3)
 plotPost(avgMCMC[,"mu"], cenTend = "mode", credMass = 0.95)
