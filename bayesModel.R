@@ -23,7 +23,7 @@ avgSentiment = function(sentiments, nChains = 3, nSteps = 10000){
         return( list( mu = muInit, sigma = sigmaInit, nu = nuInit) )
     }
     
-    model = "
+    modelString = "
       model {
         for(i in 1:NTotal) {
           y[i] ~ dt(mu, 1/sigma^2, nu)
@@ -36,16 +36,16 @@ avgSentiment = function(sentiments, nChains = 3, nSteps = 10000){
     "
     writeLines(modelString, con = "tempMCMC.txt")
     
-#     jagsModel = jags.model(file = "tempMCMC.txt", data = dataList, n.chains = 3, n.adapt = 1000)
-#     update(jagsModel, n.iter = 2000)
-#     codaSample = coda.samples(jagsModel, variable.names = c("mu", "sigma"), n.iter = ceiling(nSteps/3))
+    jagsModel = jags.model(file = "tempMCMC.txt", data = dataList, n.chains = 3, n.adapt = 1000)
+    update(jagsModel, n.iter = 2000)
+    codaSample = coda.samples(jagsModel, variable.names = c("mu", "sigma"), n.iter = ceiling(nSteps/3))
     
-    runJagsOut = run.jags(method = "parallel", model = "tempMCMC.txt", monitor = c("mu"),
-                          data = dataList, inits = initList, 
-                          n.chains = nChains, adapt = 1000, burnin = 2000, sample = ceiling(nSteps/nChains), 
-                          summarise = F, plots = F)
-    
-    codaSample = as.mcmc.list(runJagsOut)
+#     runJagsOut = run.jags(method = "parallel", model = "tempMCMC.txt", monitor = c("mu"),
+#                           data = dataList, inits = initList, 
+#                           n.chains = nChains, adapt = 1000, burnin = 2000, sample = ceiling(nSteps/nChains), 
+#                           summarise = F, plots = F)
+#     
+#     codaSample = as.mcmc.list(runJagsOut)
       
     mcmcDiagnostics(codaSample)
     
@@ -113,7 +113,7 @@ avgSentimentStan = function(sentiments, nChains = 3, nSteps = 10000) {
     options(mc.cores = parallel::detectCores())
     
     stanDSO = stan_model(model_code = model)
-    stanFit = sampling(stanDSO, data = dataList, chains=nChains, iter=ceiling(nSteps/nChains)+2000, warmup = 2000, thin = 1, init = initList)
+    stanFit = sampling(stanDSO, data = dataList, chains=nChains, iter=ceiling(nSteps/nChains)+1000, warmup = 1000, thin = 1)
     
     mcmcCoda = mcmc.list( lapply( 1:ncol(stanFit) , function(x) { mcmc(as.array(stanFit)[,x,]) } ) )
     mcmcDiagnostics(mcmcCoda, parName = "mu")

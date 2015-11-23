@@ -106,13 +106,15 @@ fitMC$dif.com[grepl("New York", rownames(fitMC$dif.com)),]
 source("bayesModel.R") 
 
 sentiments$state = as.factor(sentiments$state)
-system.time(avgSentimentStan(sentiments, nChains = 8, nSteps = 10000) -> avgMCMC)
-
-canvas(width = 13, height = 7.3)
-plotPost(avgMCMC[,"mu"], cenTend = "mode", credMass = 0.95)
+NY = sentiments %>% filter(state == "New York")
+SD = sentiments %>% filter(state == "South Dakota")
 
 
+avgSDMCMC = avgSentimentStan(SD, nChains = 4, nSteps = 20000)
+plotPost(avgSDMCMC[,"mu"], cenTend = "mode", credMass = 0.95)
 
-
-
-
+# system.time(avgSentimentStan(sentiments[sample(1:nrow(sentiments), 40000, replace = F),], nChains = 5, nSteps = 20000) -> avgMCMC)
+# plotPost(avgMCMC[,"mu"], cenTend = "mode", credMass = 0.95)
+# 
+# avgNYMCMC = avgSentiment(NY, nChains = 4, nSteps = 20000)
+# plotPost(avgNYMCMC[,"mu"], cenTend = "mode", credMass = 0.95)
