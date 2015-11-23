@@ -22,7 +22,7 @@ avgSentiment = function(sentiments, nChains = 3, nSteps = 10000){
         return( list( mu = muInit, sigma = sigmaInit, nu = nuInit) )
     }
     
-    modelString = "
+    model = "
       model {
         for(i in 1:NTotal) {
           y[i] ~ dt(mu, 1/sigma^2, nu)
@@ -52,6 +52,68 @@ avgSentiment = function(sentiments, nChains = 3, nSteps = 10000){
     
     return(mcmcMat)
     
+}
+
+avgSentimentStan = function(sentiments, nChains = 3, nSteps = 10000) {
+    
+    y = sentiments$score
+    dataList = list(
+        y = y,
+        NTotal = length(y),
+        yMean = mean(y),
+        ySD = sd(y)
+    )
+    
+    initList = function() {
+        resampledY = sample(y , replace=TRUE )
+        muInit = mean(resampledY)
+        muInit = 0.001+0.998*muInit # keep away from 0 and 1
+        sigmaInit = sd(resampledY)/sqrt(length(resampledY))
+        nuInit = 30 + rnorm(1)
+        
+        
+        return( list( mu = muInit, sigma = sigmaInit, nu = nuInit) )
+    }
+    
+    model = "
+    data {
+    int<lower=1> NTotal;
+    real y[NTotal];
+    real yMean;
+    real ySD;
+    }
+    transformed data {
+    real unifLo;
+    real unifHi;
+    real expLambda;
+    real muSigma;
+    unifLo <- ySD/1000;
+    unifHi <- ySD*1000;
+    expLambda <- 1/29.0;
+    muSigma <- ySD*100;
+    }
+    parameters{
+    real<lower=0> nuMinusOne;
+    real mu;
+    real<lower=0> sigma;
+    }
+    transformed parameters{
+    real<lower=1> nu;
+    nu <- nuMinusOne + 1;
+    }
+    model {
+    sigma ~ uniform(unifLo, unifHi);
+    nuMinusOne ~ exponential(expLambda);
+    mu ~ normal(yMean,muSigma);
+    y ~ student_t(nu, mu, sigma);
+    }
+    "
+    stanDSO = stan_model(model_code = model)
+    stanFit = sampling(stanDSO, data = dataList, chains=nChains, iter=nSteps+2000, warmup = 2000, thin = 1, init = initList)
+    
+    mcmcCoda = mcmc.list( lapply( 1:ncol(stanFit) , function(x) { mcmc(as.array(stanFit)[,x,]) } ) )
+    
+    return(mcmcCoda)
 }
 
 mcmcModel = function(data, predicted="", predictors="") {
