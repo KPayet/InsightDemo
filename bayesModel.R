@@ -1,5 +1,6 @@
 require(rjags)
 require(runjags)
+require(rstan)
 
 avgSentiment = function(sentiments, nChains = 3, nSteps = 10000){
     
@@ -108,10 +109,14 @@ avgSentimentStan = function(sentiments, nChains = 3, nSteps = 10000) {
     y ~ student_t(nu, mu, sigma);
     }
     "
+    rstan_options(auto_write = TRUE)
+    options(mc.cores = parallel::detectCores())
+    
     stanDSO = stan_model(model_code = model)
-    stanFit = sampling(stanDSO, data = dataList, chains=nChains, iter=nSteps+2000, warmup = 2000, thin = 1, init = initList)
+    stanFit = sampling(stanDSO, data = dataList, chains=nChains, iter=ceiling(nSteps/nChains)+2000, warmup = 2000, thin = 1, init = initList)
     
     mcmcCoda = mcmc.list( lapply( 1:ncol(stanFit) , function(x) { mcmc(as.array(stanFit)[,x,]) } ) )
+    mcmcDiagnostics(mcmcCoda, parName = "mu")
     
     return(mcmcCoda)
 }
