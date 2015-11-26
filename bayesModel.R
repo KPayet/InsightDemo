@@ -64,6 +64,7 @@ avgSentimentStan = function(sentiments, nChains = 3, nSteps = 10000) {
         yMean = mean(y),
         ySD = sd(y)
     )
+    print(dataList[[3]])
     
     initList = function() {
         resampledY = sample(y , replace=TRUE )
@@ -90,23 +91,18 @@ avgSentimentStan = function(sentiments, nChains = 3, nSteps = 10000) {
     real muSigma;
     unifLo <- ySD/1000;
     unifHi <- ySD*1000;
-    expLambda <- 1/29.0;
     muSigma <- ySD*100;
     }
     parameters{
-    real<lower=0> nuMinusOne;
     real mu;
     real<lower=0> sigma;
     }
     transformed parameters{
-    real<lower=1> nu;
-    nu <- nuMinusOne + 1;
     }
     model {
     sigma ~ uniform(unifLo, unifHi);
-    nuMinusOne ~ exponential(expLambda);
     mu ~ normal(yMean,muSigma);
-    y ~ student_t(nu, mu, sigma);
+    y ~ normal(mu, sigma);
     }
     "
     rstan_options(auto_write = TRUE)
